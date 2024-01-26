@@ -1,0 +1,13 @@
+Engine: Place general-purpose engine classes that are not specific to a particular game state or entity in the Engine directory. This could include animation classes, input management, and other utilities.
+
+States: Organize game states or screens in the States directory. Each screen should typically have its own class or folder.
+
+Entity: Group game entities (player, enemies, etc.) in the Entities directory. Each entity could have its own class or folder.
+
+Helpers: Store utility classes and helper functions in the Helpers directory. These could include collision detection helpers, math functions, etc.
+
+Managers: Place manager classes responsible for managing specific game systems in the Managers directory. Examples include AudioManager, SceneManager, etc.
+
+Services: For broader functionalities like logging, analytics, etc., consider placing them in the Services directory.
+
+Config: Store configuration files in the Config directory. These might include JSON or XML files containing game settings.
