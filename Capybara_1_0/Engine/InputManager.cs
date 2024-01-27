@@ -31,25 +31,31 @@ namespace Capybara_1.Engine
 
     public class InputManager
     {
-        private KeyboardState previous;
         private Dictionary<Keys, InputEnum> keyBindings;
         private int playerInput;
-        public InputManager() { }
+        private InputContainer inputContainer;
 
-        public int Update(KeyboardState current)
+        public InputManager() 
         {
-            Keys[] pressed = current.GetPressedKeys();
-            playerInput = 0;
+            this.inputContainer = new InputContainer();
+        }
 
-            foreach (Keys key in pressed)
+        public int Update()
+        {
+            playerInput = 0;
+            foreach (Keys key in inputContainer.c_Keyboard.GetPressedKeys())
             {
                 if (keyBindings.ContainsKey(key))
                 {
                     playerInput |= (int)keyBindings[key];
                 }
             }
-            previous = current;
             return playerInput;
+        }
+
+        public void HandleInput(KeyboardState keyboardState, MouseState mouseState)
+        {
+            inputContainer.Update(keyboardState, mouseState);
         }
 
         public bool Pressed(params InputEnum[] input)
@@ -63,5 +69,23 @@ namespace Capybara_1.Engine
         }
 
         public Dictionary<Keys, InputEnum> KeyBindings { get { return keyBindings; } set { this.keyBindings = value; } }
+
+        private class InputContainer
+        {
+            public KeyboardState p_Keyboard;
+            public KeyboardState c_Keyboard;
+            public MouseState p_Mouse;
+            public MouseState c_Mouse;
+
+            public InputContainer() { }
+
+            public void Update(KeyboardState keyboardState, MouseState mouseState)
+            {
+                this.p_Keyboard = this.c_Keyboard;
+                this.c_Keyboard = keyboardState;
+                this.p_Mouse = this.c_Mouse;
+                this.c_Mouse = mouseState;
+            }
+        }
     }
 }

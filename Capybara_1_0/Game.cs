@@ -44,6 +44,7 @@ namespace Capybara_1
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            _camera.Update(gameTime);
             _gameStateManager.Update(gameTime);
 
             base.Update(gameTime);
