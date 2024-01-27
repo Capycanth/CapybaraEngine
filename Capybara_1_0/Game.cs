@@ -1,4 +1,5 @@
 ﻿using Capybara_1.Engine;
+using Capybara_1.States;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -13,6 +14,7 @@ namespace Capybara_1
         public static Cache _cache;
         public static Camera _camera;
         public static GameStateManager _gameStateManager;
+        public static GameStateEnum transitionTo = GameStateEnum.NONE;
 
         public Game()
         {
@@ -25,7 +27,7 @@ namespace Capybara_1
         {
             _cache = Cache.GetCache();
             _camera = Camera.GetCamera();
-            _gameStateManager = GameStateManager.GetGameStateManager();
+            _gameStateManager = GameStateManager.GetGameStateManager(Content);
 
             // _gameStateManager.ChangeState();
 

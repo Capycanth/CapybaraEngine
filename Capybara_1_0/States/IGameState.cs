@@ -2,12 +2,14 @@
 using Microsoft.Xna.Framework.Graphics;
 using Capybara_1.Engine;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Content;
 
 namespace Capybara_1.States
 {
     public enum GameStateEnum
     {
         // Add Game State Enums here for each Game State
+        NONE = 0,
     }
 
     public interface IGameState
@@ -16,7 +18,7 @@ namespace Capybara_1.States
         InputManager InputManager { get; set; }
 
         void Initialize();
-        void LoadContent();
+        void LoadContent(ContentManager _contentManager);
         void Update(GameTime gameTime);
         void Draw(SpriteBatch spriteBatch);
         void UnloadContent();
