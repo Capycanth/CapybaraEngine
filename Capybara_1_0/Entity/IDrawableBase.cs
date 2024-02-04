@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Capybara_1.Entity
 {
-    public interface DrawableBase
+    public interface IDrawableBase
     {
         Rectangle Destination { get; set; }
         Rectangle Source { get; set; }

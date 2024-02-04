@@ -16,12 +16,12 @@ namespace Capybara_1.States
     {
         GameStateEnum GameState { get; set; }
         InputManager InputManager { get; set; }
-
         void Initialize();
         void LoadContent(ContentManager _contentManager);
-        void Update(GameTime gameTime);
-        void Draw(SpriteBatch spriteBatch);
         void UnloadContent();
+        void Update(GameTime gameTime);
+        void Draw(SpriteBatch _spriteBatch);
+        void Begin(); // Begin music, intro camera animations, intro transitions, etc...
         void HandleInput()
         {
             InputManager.HandleInput(Keyboard.GetState(), Mouse.GetState());

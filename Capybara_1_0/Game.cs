@@ -14,7 +14,6 @@ namespace Capybara_1
         public static Cache _cache;
         public static Camera _camera;
         public static GameStateManager _gameStateManager;
-        public static GameStateEnum transitionTo = GameStateEnum.NONE;
 
         public Game()
         {
@@ -28,8 +27,7 @@ namespace Capybara_1
             _cache = Cache.GetCache();
             _camera = Camera.GetCamera();
             _gameStateManager = GameStateManager.GetGameStateManager(Content);
-
-            // _gameStateManager.ChangeState();
+            //_gameStateManager.PushToStackAndInitialize(new GSHome());
 
             base.Initialize();
         }
@@ -48,19 +46,15 @@ namespace Capybara_1
 
             _camera.Update(gameTime);
             _gameStateManager.Update(gameTime);
-
-            base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
-            _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, transformMatrix: _camera.TranslationMatrix);
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, transformMatrix: _camera.TranslationMatrix);
             _gameStateManager.Draw(_spriteBatch);
             _spriteBatch.End();
-
-            base.Draw(gameTime);
         }
     }
 }

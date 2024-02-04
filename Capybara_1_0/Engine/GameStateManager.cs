@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Capybara_1.Engine
 {
@@ -24,69 +25,77 @@ namespace Capybara_1.Engine
         }
         #endregion
 
-        private IGameState currentState;
-        private List<GameStateTransition> GSTs = new List<GameStateTransition>();
-        private List<GSTEnum> PauseUpdateStates = new List<GSTEnum>() { GSTEnum.DELAY };
+        private Queue<IGameState> StateQueue = new Queue<IGameState>();
+        private Queue<GameStateTransition> GSTs = new Queue<GameStateTransition>();
         private ContentManager _contentManager;
-
-        public void ChangeState(IGameState newState)
-        {
-            currentState?.UnloadContent(); // Unload content of the current state if it exists
-            currentState = newState;
-            currentState.LoadContent(_contentManager);
-            currentState.Initialize();
-            DetermineGSTs();
-        }
+        private bool popState = false;
 
         public void Update(GameTime gameTime)
         {
-            if (Game.transitionTo != GameStateEnum.NONE)
+            if (popState)
             {
-                TransitionByGSEnum();
-                Game.transitionTo = GameStateEnum.NONE;
+                DestroyState(StateQueue.Dequeue());
+                popState = false;
+                StateQueue.Peek().Begin();
             }
 
-            if (GSTs.Count == 0)
+            if (GSTs.Count == 0 && StateQueue.Count > 0)
             {
-                currentState?.Update(gameTime);
-                return;
+                StateQueue.Peek().HandleInput();
+                StateQueue.Peek().Update(gameTime);
             }
-
-            if (GSTs[0].IsCompleted)
+            else
             {
-                GSTs.RemoveAt(0);
-                return;
+                if (GSTs.Peek().IsCompleted)
+                {
+                    GSTs.Dequeue();
+                    return;
+                }
+                switch (GSTs.Peek().GSTEnum)
+                {
+                    default:
+                        throw new NotImplementedException();
+                }
             }
-
-            GSTs[0].Update(gameTime);
-
-            if (PauseUpdateStates.Contains(GSTs[0].GSTEnum))
-            {
-                return;
-            }
-
-            currentState?.Update(gameTime);
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            currentState?.Draw(spriteBatch);
-        }
-
-        private void TransitionByGSEnum()
-        {
-            switch (Game.transitionTo)
+            if (GSTs.Count == 0 && StateQueue.Count > 0)
             {
-                // Add statement per Game State
+                StateQueue.Peek().Draw(spriteBatch);
+            }
+            else
+            {
+                switch (GSTs.Peek().GSTEnum)
+                {
+                    default:
+                        throw new NotImplementedException();
+                }
             }
         }
 
-        private void DetermineGSTs()
+        public async Task PushToStackAndInitialize(IGameState newGameState, Action TransitionComplete)
         {
-            switch (Game.transitionTo)
+            await Task.Run(() =>
             {
-                // Add statement to determine transitions
-            }
+                newGameState.LoadContent(_contentManager);
+                newGameState.Initialize();
+                StateQueue.Enqueue(newGameState);
+                if (StateQueue.Count > 1)
+                {
+                    this.popState = true;
+                }
+                TransitionComplete();
+            });
+        }
+
+        public async Task DestroyState(IGameState state)
+        {
+            await Task.Run(() =>
+            {
+                state.UnloadContent();
+            });
         }
     }
 
@@ -94,6 +103,7 @@ namespace Capybara_1.Engine
     {
         DELAY = 0,
         BLACK_FADE = 1,
+        LOAD = 2,
     }
 
     public abstract class GameStateTransition
@@ -121,6 +131,7 @@ namespace Capybara_1.Engine
         private Texture2D texture;
         private float frameFade;
         private float currentFade;
+        private Color color;
 
         public GSTBlackFade(int runtime, bool fadeOut) : base(runtime)
         {
@@ -138,21 +149,24 @@ namespace Capybara_1.Engine
                 frameFade = -1f / runtime;
                 currentFade = 1f;
             }
+            this.color = new Color(Color.White, currentFade);
         }
 
         public override void Draw(SpriteBatch _spriteBatch)
         {
-            _spriteBatch.Draw(texture, rect, new Color(Color.White, currentFade));
+            _spriteBatch.Draw(this.texture, this.rect, this.color);
         }
 
         public override void Update(GameTime gameTime)
         {
-            if (currentFade > 1f || currentFade < 0)
+            this.currentFade += (this.frameFade * gameTime.ElapsedGameTime.Milliseconds);
+            Math.Clamp(currentFade, 0f, 1f);
+            if (currentFade == 1f || currentFade == 0)
             {
                 this.completed = true;
                 return;
             }
-            currentFade += frameFade;
+            this.color = new Color(Color.White, currentFade);
         }
     }
 
@@ -174,6 +188,36 @@ namespace Capybara_1.Engine
             if (timer.isTimeMet(1000))
             {
                 this.completed = true;
+            }
+        }
+    }
+
+    public class GSTLoad : GameStateTransition
+    {
+        private IGameState toState;
+        private Rectangle rect;
+        private Texture2D texture;
+        private bool waiting;
+        public GSTLoad(int runtime, IGameState toState) : base(runtime)
+        {
+            this.toState = toState;
+            this.GSTEnum = GSTEnum.LOAD;
+            this.waiting = false;
+            rect = new Rectangle(0, 0, 1080, 720);
+            texture = Game._cache.TextureCache["BlackPixel"];
+        }
+
+        public override void Draw(SpriteBatch _spriteBatch)
+        {
+            _spriteBatch.Draw(texture, rect, Color.White);
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            if (!waiting)
+            {
+                Game._gameStateManager.PushToStackAndInitialize(this.toState, () => { this.completed = true; });
+                waiting = true;
             }
         }
     }

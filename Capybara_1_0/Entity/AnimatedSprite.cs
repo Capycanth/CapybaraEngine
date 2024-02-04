@@ -4,7 +4,7 @@ using System;
 
 namespace Capybara_1.Entity
 {
-    public class AnimatedSprite : DrawableBase
+    public class AnimatedSprite : IDrawableBase
     {
         private Rectangle destination;
         private Rectangle source;
